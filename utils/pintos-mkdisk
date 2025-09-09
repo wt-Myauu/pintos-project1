@@ -50,6 +50,10 @@ GetOptions ("h|help" => sub { usage (0); },
   or exit 1;
 usage (1) if @ARGV != 1;
 
+# Set default values
+$format = 'partitioned' if !defined $format;
+$align = 'bochs' if !defined $align;
+
 $disk_fn = $ARGV[0];
 die "$disk_fn: already exists\n" if -e $disk_fn;
 

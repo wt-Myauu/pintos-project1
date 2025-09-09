@@ -40,7 +40,7 @@ run_vm ();
 finish_scratch_disk ();
 
 exit 0;
-
+
 # Parses the command line.
 sub parse_command_line {
     usage (0) if @ARGV == 0 || (@ARGV == 1 && $ARGV[0] eq '--help');
@@ -100,7 +100,7 @@ sub parse_command_line {
 	  or exit 1;
     }
 
-    $sim = "bochs" if !defined $sim;
+    $sim = "qemu" if !defined $sim;
     $debug = "none" if !defined $debug;
     $vga = exists ($ENV{DISPLAY}) ? "window" : "none" if !defined $vga;
 
@@ -250,7 +250,7 @@ sub set_disk {
 	$parts{$role}{SECTORS} = $pt{$role}{SECTORS};
     }
 }
-
+
 # Locates the files used to back each of the virtual disks,
 # and creates temporary disks.
 sub find_disks {
@@ -325,7 +325,7 @@ sub find_disks {
     unshift (@disks, $make_disk);
     die "can't use more than " . scalar (@disks) . "disks\n" if @disks > 4;
 }
-
+
 # Prepare the scratch disk for gets and puts.
 sub prepare_scratch_disk {
     return if !@gets && !@puts;
@@ -525,7 +525,7 @@ sub get_scratch_file {
 
     return 0;
 }
-
+
 # Running simulators.
 
 # Runs the selected simulator.
@@ -618,20 +618,53 @@ sub print_bochs_disk_line {
 sub run_qemu {
     print "warning: qemu doesn't support --terminal\n"
       if $vga eq 'terminal';
-    print "warning: qemu doesn't support jitter\n"
+    print "warning: qemu doesn't support --jitter\n"
       if defined $jitter;
-    my (@cmd) = ('qemu');
-    push (@cmd, '-hda', $disks[0]) if defined $disks[0];
-    push (@cmd, '-hdb', $disks[1]) if defined $disks[1];
-    push (@cmd, '-hdc', $disks[2]) if defined $disks[2];
-    push (@cmd, '-hdd', $disks[3]) if defined $disks[3];
+
+    # Select QEMU binary with fallback priority
+    my $qemu = find_in_path("qemu-system-i386");
+    my $use_qemu32 = 0;
+    if (!defined $qemu) {
+        $qemu = find_in_path("qemu-system-x86_64");
+        $use_qemu32 = 1 if defined $qemu;
+    }
+    $qemu = "qemu" if !defined $qemu;
+
+    my (@cmd) = ($qemu);
+    push (@cmd, '-cpu', 'qemu32') if $use_qemu32;
+
+    # Add disk drives using modern -drive syntax
+    for my $i (0 .. 3) {
+        if (defined $disks[$i]) {
+            push (@cmd, '-drive', "file=$disks[$i],if=ide,index=$i,media=disk");
+        }
+    }
+
+    # Memory and network
     push (@cmd, '-m', $mem);
     push (@cmd, '-net', 'none');
-    push (@cmd, '-nographic') if $vga eq 'none';
-    push (@cmd, '-serial', 'stdio') if $serial && $vga ne 'none';
-    push (@cmd, '-S') if $debug eq 'monitor';
-    push (@cmd, '-s', '-S') if $debug eq 'gdb';
-    push (@cmd, '-monitor', 'null') if $vga eq 'none' && $debug eq 'none';
+
+    # Display and serial configuration
+    if ($vga eq 'none') {
+        push (@cmd, '-display', 'none');
+        push (@cmd, '-serial', 'stdio') if $serial;
+        push (@cmd, '-monitor', 'none') if $debug eq 'none';
+    } else {
+        push (@cmd, '-nographic') if $vga eq 'none';
+        push (@cmd, '-serial', 'stdio') if $serial && $vga ne 'none';
+        push (@cmd, '-monitor', 'none') if $debug eq 'none';
+    }
+
+    # Debug options
+    if ($debug eq 'monitor') {
+        push (@cmd, '-S');
+    } elsif ($debug eq 'gdb') {
+        push (@cmd, '-s', '-S');
+    }
+
+    # Prevent automatic reboot on triple fault
+    push (@cmd, '-no-reboot');
+
     run_command (@cmd);
 }
 
@@ -734,7 +767,7 @@ EOF
     print join (' ', @cmd), "\n";
     xsystem (@cmd);
 }
-
+
 # Disk utilities.
 
 sub extend_file {
@@ -764,7 +797,7 @@ sub disk_geometry {
 	    H => 16,
 	    S => 63);
 }
-
+
 # Subprocess utilities.
 
 # run_command(@args)
@@ -908,7 +941,7 @@ sub get_load_average {
 # Calls setitimer to set a timeout, then execs what was passed to us.
 sub exec_setitimer {
     if (defined $timeout) {
-	if ($ ge 5.8.0) {
+	if ($] ge 5.8.0) {
 	    eval "
               use Time::HiRes qw(setitimer ITIMER_VIRTUAL);
               setitimer (ITIMER_VIRTUAL, $timeout, 0);
