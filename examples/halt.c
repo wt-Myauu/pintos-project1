@@ -9,6 +9,6 @@
 int
 main (void)
 {
-  halt ();
-  /* not reached */
+    halt ();
+    /* not reached */
 }

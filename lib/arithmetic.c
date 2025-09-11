@@ -25,51 +25,51 @@
 static inline uint32_t
 divl (uint64_t n, uint32_t d)
 {
-  uint32_t n1 = n >> 32;
-  uint32_t n0 = n;
-  uint32_t q, r;
+    uint32_t n1 = n >> 32;
+    uint32_t n0 = n;
+    uint32_t q, r;
 
-  asm ("divl %4"
-       : "=d" (r), "=a" (q)
-       : "0" (n1), "1" (n0), "rm" (d));
+    asm ("divl %4"
+         : "=d"(r), "=a"(q)
+         : "0"(n1), "1"(n0), "rm"(d));
 
-  return q;
+    return q;
 }
 
 /* Returns the number of leading zero bits in X,
    which must be nonzero. */
 static int
-nlz (uint32_t x) 
+nlz (uint32_t x)
 {
-  /* This technique is portable, but there are better ways to do
+    /* This technique is portable, but there are better ways to do
      it on particular systems.  With sufficiently new enough GCC,
      you can use __builtin_clz() to take advantage of GCC's
      knowledge of how to do it.  Or you can use the x86 BSR
      instruction directly. */
-  int n = 0;
-  if (x <= 0x0000FFFF)
-    {
-      n += 16;
-      x <<= 16; 
-    }
-  if (x <= 0x00FFFFFF)
-    {
-      n += 8;
-      x <<= 8; 
-    }
-  if (x <= 0x0FFFFFFF)
-    {
-      n += 4;
-      x <<= 4;
-    }
-  if (x <= 0x3FFFFFFF)
-    {
-      n += 2;
-      x <<= 2; 
-    }
-  if (x <= 0x7FFFFFFF)
-    n++;
-  return n;
+    int n = 0;
+    if (x <= 0x0000FFFF)
+        {
+            n += 16;
+            x <<= 16;
+        }
+    if (x <= 0x00FFFFFF)
+        {
+            n += 8;
+            x <<= 8;
+        }
+    if (x <= 0x0FFFFFFF)
+        {
+            n += 4;
+            x <<= 4;
+        }
+    if (x <= 0x3FFFFFFF)
+        {
+            n += 2;
+            x <<= 2;
+        }
+    if (x <= 0x7FFFFFFF)
+        n++;
+    return n;
 }
 
 /* Divides unsigned 64-bit N by unsigned 64-bit D and returns the
@@ -77,9 +77,9 @@ nlz (uint32_t x)
 static uint64_t
 udiv64 (uint64_t n, uint64_t d)
 {
-  if ((d >> 32) == 0) 
-    {
-      /* Proof of correctness:
+    if ((d >> 32) == 0)
+        {
+            /* Proof of correctness:
 
          Let n, d, b, n1, and n0 be defined as in this function.
          Let [x] be the "floor" of x.  Let T = b[n1/d].  Assume d
@@ -103,27 +103,27 @@ udiv64 (uint64_t n, uint64_t d)
          which is a tautology.
 
          Therefore, this code is correct and will not trap. */
-      uint64_t b = 1ULL << 32;
-      uint32_t n1 = n >> 32;
-      uint32_t n0 = n; 
-      uint32_t d0 = d;
+            uint64_t b = 1ULL << 32;
+            uint32_t n1 = n >> 32;
+            uint32_t n0 = n;
+            uint32_t d0 = d;
 
-      return divl (b * (n1 % d0) + n0, d0) + b * (n1 / d0); 
-    }
-  else 
-    {
-      /* Based on the algorithm and proof available from
-         http://www.hackersdelight.org/revisions.pdf. */
-      if (n < d)
-        return 0;
-      else 
-        {
-          uint32_t d1 = d >> 32;
-          int s = nlz (d1);
-          uint64_t q = divl (n >> 1, (d << s) >> 32) >> (31 - s);
-          return n - (q - 1) * d < d ? q - 1 : q; 
+            return divl (b * (n1 % d0) + n0, d0) + b * (n1 / d0);
         }
-    }
+    else
+        {
+            /* Based on the algorithm and proof available from
+         http://www.hackersdelight.org/revisions.pdf. */
+            if (n < d)
+                return 0;
+            else
+                {
+                    uint32_t d1 = d >> 32;
+                    int s = nlz (d1);
+                    uint64_t q = divl (n >> 1, (d << s) >> 32) >> (31 - s);
+                    return n - (q - 1) * d < d ? q - 1 : q;
+                }
+        }
 }
 
 /* Divides unsigned 64-bit N by unsigned 64-bit D and returns the
@@ -131,7 +131,7 @@ udiv64 (uint64_t n, uint64_t d)
 static uint32_t
 umod64 (uint64_t n, uint64_t d)
 {
-  return n - d * udiv64 (n, d);
+    return n - d * udiv64 (n, d);
 }
 
 /* Divides signed 64-bit N by signed 64-bit D and returns the
@@ -139,10 +139,10 @@ umod64 (uint64_t n, uint64_t d)
 static int64_t
 sdiv64 (int64_t n, int64_t d)
 {
-  uint64_t n_abs = n >= 0 ? (uint64_t) n : -(uint64_t) n;
-  uint64_t d_abs = d >= 0 ? (uint64_t) d : -(uint64_t) d;
-  uint64_t q_abs = udiv64 (n_abs, d_abs);
-  return (n < 0) == (d < 0) ? (int64_t) q_abs : -(int64_t) q_abs;
+    uint64_t n_abs = n >= 0 ? (uint64_t)n : -(uint64_t)n;
+    uint64_t d_abs = d >= 0 ? (uint64_t)d : -(uint64_t)d;
+    uint64_t q_abs = udiv64 (n_abs, d_abs);
+    return (n < 0) == (d < 0) ? (int64_t)q_abs : -(int64_t)q_abs;
 }
 
 /* Divides signed 64-bit N by signed 64-bit D and returns the
@@ -150,9 +150,9 @@ sdiv64 (int64_t n, int64_t d)
 static int32_t
 smod64 (int64_t n, int64_t d)
 {
-  return n - d * sdiv64 (n, d);
+    return n - d * sdiv64 (n, d);
 }
-
+
 /* These are the routines that GCC calls. */
 
 long long __divdi3 (long long n, long long d);
@@ -162,28 +162,28 @@ unsigned long long __umoddi3 (unsigned long long n, unsigned long long d);
 
 /* Signed 64-bit division. */
 long long
-__divdi3 (long long n, long long d) 
+__divdi3 (long long n, long long d)
 {
-  return sdiv64 (n, d);
+    return sdiv64 (n, d);
 }
 
 /* Signed 64-bit remainder. */
 long long
-__moddi3 (long long n, long long d) 
+__moddi3 (long long n, long long d)
 {
-  return smod64 (n, d);
+    return smod64 (n, d);
 }
 
 /* Unsigned 64-bit division. */
 unsigned long long
-__udivdi3 (unsigned long long n, unsigned long long d) 
+__udivdi3 (unsigned long long n, unsigned long long d)
 {
-  return udiv64 (n, d);
+    return udiv64 (n, d);
 }
 
 /* Unsigned 64-bit remainder. */
 unsigned long long
-__umoddi3 (unsigned long long n, unsigned long long d) 
+__umoddi3 (unsigned long long n, unsigned long long d)
 {
-  return umod64 (n, d);
+    return umod64 (n, d);
 }

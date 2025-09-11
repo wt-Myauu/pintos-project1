@@ -8,9 +8,9 @@
 void
 test_main (void)
 {
-  int handle;
+    int handle;
 
-  CHECK ((handle = open ("sample.txt")) > 1, "open \"sample.txt\"");
-  read (handle, (char *) &handle - 4096, 1);
-  fail ("survived reading data into bad address");
+    CHECK ((handle = open ("sample.txt")) > 1, "open \"sample.txt\"");
+    read (handle, (char *)&handle - 4096, 1);
+    fail ("survived reading data into bad address");
 }
