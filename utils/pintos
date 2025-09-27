@@ -647,13 +647,15 @@ sub run_qemu {
     # Display and serial configuration
     if ($vga eq 'none') {
         push (@cmd, '-display', 'none');
-        push (@cmd, '-serial', 'stdio') if $serial;
-        push (@cmd, '-monitor', 'none') if $debug eq 'none';
     } else {
-        push (@cmd, '-nographic') if $vga eq 'none';
-        push (@cmd, '-serial', 'stdio') if $serial && $vga ne 'none';
-        push (@cmd, '-monitor', 'none') if $debug eq 'none';
+        my $display_backend = $ENV{PINTOS_QEMU_DISPLAY} // 'default';
+        push (@cmd, '-display', $display_backend);
     }
+
+    if ($serial) {
+        push (@cmd, '-serial', 'stdio');
+    }
+    push (@cmd, '-monitor', 'none') if $debug eq 'none';
 
     # Debug options
     if ($debug eq 'monitor') {
