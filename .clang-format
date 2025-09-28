@@ -1,0 +1,25 @@
+BasedOnStyle: GNU
+Language: Cpp
+IndentWidth: 4
+ContinuationIndentWidth: 4
+TabWidth: 4
+UseTab: Never
+
+# Keep existing brace and newline style similar to current code (GNU-like)
+BreakBeforeBraces: GNU
+
+# Keep function return type/name breaking similar to Pintos sources
+# (GNU base already prefers breaks at top-level defs)
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+
+# Avoid risky reflows/reordering to ensure logic/signature stability
+SortIncludes: false
+IncludeBlocks: Preserve
+ReflowComments: false
+ColumnLimit: 0
+
+# Keep common C pointer style
+DerivePointerAlignment: false
+PointerAlignment: Right

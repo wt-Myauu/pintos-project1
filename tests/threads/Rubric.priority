@@ -1,0 +1,9 @@
+Functionality of simplified scheduler:
+5	priority-change
+5	priority-fifo
+5	priority-preempt
+5	priority-preempt-timer
+5	priority-aging
+5	priority-sema
+5	priority-condvar
+5	mlfqs-simplified

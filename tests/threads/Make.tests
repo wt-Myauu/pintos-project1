@@ -1,0 +1,29 @@
+# -*- makefile -*-
+
+# Test names.
+tests/threads_TESTS = $(addprefix tests/threads/, \
+    priority-change \
+    priority-fifo \
+    priority-preempt \
+    priority-preempt-timer \
+    priority-aging \
+    priority-sema \
+    priority-condvar \
+    mlfqs-simplified)
+
+# Sources for tests.
+tests/threads_SRC  = tests/threads/tests.c
+tests/threads_SRC += tests/threads/priority-change.c
+tests/threads_SRC += tests/threads/priority-fifo.c
+tests/threads_SRC += tests/threads/priority-preempt.c
+tests/threads_SRC += tests/threads/priority-preempt-timer.c
+tests/threads_SRC += tests/threads/priority-aging.c
+tests/threads_SRC += tests/threads/priority-sema.c
+tests/threads_SRC += tests/threads/priority-condvar.c
+tests/threads_SRC += tests/threads/mlfqs-simplified.c
+
+MLFQS_OUTPUTS = \
+    tests/threads/mlfqs-simplified.output
+
+$(MLFQS_OUTPUTS): KERNELFLAGS += -mlfqs
+$(MLFQS_OUTPUTS): TIMEOUT = 240
