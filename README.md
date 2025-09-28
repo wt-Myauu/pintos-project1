@@ -3,7 +3,7 @@
 ## 프로젝트 개요
 A Pintos project for Kongju National University's Operating Systems course 0522001, configured to build and run on modern Ubuntu/QEMU environments.
 
-80x86 아키텍처용 교육용 운영체제인 Pintos는 커널 스레드, 사용자 프로그램 적재·실행, 파일 시스템 등을 실제 상용 OS보다 단순화해 학습용으로 제공한다. Project #1에서는 물리 하드웨어 대신 오픈 소스 하드웨어 에뮬레이터인 QEMU(Quick Emulator)를 활용해 가상 머신 환경에서 Pintos를 구동한다.
+80x86 아키텍처용 교육용 운영체제인 Pintos는 커널 스레드, 사용자 프로그램 적재·실행, 파일 시스템 등을 실제 상용 OS보다 단순화해 학습용으로 제공한다. 본 실습 프로젝트에서는 물리 하드웨어 대신 오픈 소스 하드웨어 에뮬레이터인 QEMU(Quick Emulator)를 활용해 가상 머신 환경에서 Pintos를 구동한다. 
 
 Original pintos repository: https://web.stanford.edu/class/cs140/projects/pintos/
 
@@ -25,7 +25,7 @@ sudo apt install build-essential binutils qemu-system-x86 perl git
 - `utils/`: `pintos`, `pintos-gdb` 등 실행 및 디버깅 유틸리티
 - `devices/`: 타이머 등 장치 에뮬레이션 계층
 - `lib/`: 커널/유저 공용 라이브러리 및 자료구조
-필요한 자료구조는 `lib/kernel` 하위 구현을 활용한다.
+필요한 자료구조는 `lib/kernel` 하위 구현을 활용한다. 보다 자세한 설명은 원본 Pintos 저장소 의 Pintos.pdf 파일을 참고한다. 
 
 ## 프로젝트 수행 순서
 먼저 `threads` 디렉터리에 포함된 부분 구현 스레드 시스템을 살펴 Thread Fork, 기본 Round-Robin 스케줄러, 세마포어 등 이미 제공되는 구성 요소를 이해한다. 구현 목표는 해당 기반 위에서 추가 스케줄링 기법을 완성하는 것이다. 준비 큐에서 스레드가 어떤 순서로 선택되어도 동작이 일관되어야 하며, 인터럽트 허용 구간 어디에 `thread_yield()`를 삽입하더라도 올바르게 처리되도록 동기화를 신경 쓴다. Pintos는 각 스레드에 4KB 미만의 커널 스택을 배정하므로 큰 지역 변수의 선언을 피한다. 스케줄링과 관련된 타이머와 타이머 인터럽트 동작은 `devices/timer.c`와 `timer.h`를 참고해 이해한다. 
