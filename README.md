@@ -30,15 +30,41 @@ sudo apt install build-essential binutils qemu-system-x86 perl git
 ## 프로젝트 수행 순서
 먼저 `threads` 디렉터리에 포함된 부분 구현 스레드 시스템을 살펴 Thread Fork, 기본 Round-Robin 스케줄러, 세마포어 등 이미 제공되는 구성 요소를 이해한다. 구현 목표는 해당 기반 위에서 추가 스케줄링 기법을 완성하는 것이다. 준비 큐에서 스레드가 어떤 순서로 선택되어도 동작이 일관되어야 하며, 인터럽트 허용 구간 어디에 `thread_yield()`를 삽입하더라도 올바르게 처리되도록 동기화를 신경 쓴다. Pintos는 각 스레드에 4KB 미만의 커널 스택을 배정하므로 큰 지역 변수의 선언을 피한다. 스케줄링과 관련된 타이머와 타이머 인터럽트 동작은 `devices/timer.c`와 `timer.h`를 참고해 이해한다. 
 
+## 저장소 Clone 및 개인 저장소 복제 
+```bash
+git clone -b proj1 https://github.com/jhnleeknu/kjnu0522001-pintos.git
+cd kjnu0522001-pintos
+```
+수강생은 각자 clone 받은 코드를 기반으로 개발을 진행하며, 소스코드 수정사항을 관리하고자 할 경우 아래와 같이 코드베이스를 자신의 저장소로 복제하는 것을 권장한다. 
+1. GitHub에서 본인 계정에 새로운 빈 저장소 생성
+2. 원본 저장소 bare clone 수행
+   ```bash
+   git clone --bare https://github.com/jhnleeknu/kjnu0522001-pintos.git
+   cd kjnu0522001-pintos.git
+   ```
+3. 새로 만든 본인 저장소로 mirror-push
+   ```bash
+   git push --mirror https://github.com/<your-username>/<your-repository-name>.git
+   ```
+5. 임시 디렉터리 정리
+   ```bash
+   cd ..
+   rm -rf kjnu0522001-pintos.git
+   ```
+5. 본인 계정의 저장소를 clone 하여 자유롭게 개발 및 백업
+   ```bash
+   git clone  https://github.com/<your-username>/<your-repository-name>.git
+   ```
+**주의사항: 본 저장소를 FORK하지 마시기 바랍니다!** 
 
 ## 빌드 및 실행 방법
 ```bash
-git clone <repo-url>
+git clone https://github.com/jhnleeknu/kjnu0522001-pintos.git
 cd kjnu0522001-pintos/threads
 make
 ../utils/pintos -- run priority-preempt
 ```
-전체 테스트는 `make check`로 실행할 수 있다. 
+전체 테스트는 `make check`로 실행 가능 
 
 ## 기본 스케줄러 동작 점검
 `thread_tick()`은 `TIME_SLICE` 틱마다 `intr_yield_on_return()`을 호출해 스케줄러를 호출한다. 동일 우선순위를 가진 스레드는 생성 순서를 유지한 채 Round-Robin으로 실행되어야 한다. `tests/threads/priority-fifo`는 스케줄러 확장 이후에도 기본 Round-Robin 동작이 유지되는지 확인한다. 
