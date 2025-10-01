@@ -22,7 +22,7 @@ sudo apt install build-essential binutils qemu-system-x86 perl git
 ## 프로젝트 수행 순서
 먼저 `threads` 디렉터리에 포함된 부분 구현 스레드 시스템을 살펴 Thread Fork, 기본 Round-Robin 스케줄러, 세마포어 등 이미 제공되는 구성 요소를 이해한다. 구현 목표는 해당 기반 위에서 추가 스케줄링 기법을 완성하는 것이다. Ready 큐에서 스레드가 어떤 순서로 선택되어도 동작이 일관되어야 하며, 인터럽트 허용 구간 어디에 `thread_yield()`를 삽입하더라도 올바르게 처리되도록 동기화를 신경 쓴다. Pintos는 각 스레드에 4KB 미만의 커널 스택을 배정하므로 큰 지역 변수의 선언을 피한다. 스케줄링과 관련된 타이머와 타이머 인터럽트 동작은 `devices/timer.c`와 `timer.h`를 참고해 이해한다. 
 
-## 프로젝트 구조
+## Pintos 디렉터리 구조
 - `threads/`: 스레드 서브시스템과 빌드 스크립트, **실습 시 수정 대상**
 - `tests/threads/`: 자동 채점을 위한 스레드 테스트
 - `devices/`: 타이머 등 장치 에뮬레이션 계층
@@ -32,6 +32,25 @@ sudo apt install build-essential binutils qemu-system-x86 perl git
 - `userprog/`: 사용자 공간 프로세스 기능 구현을 위한 프로세스, 시스템콜, 페이지테이블 등, **프로젝트 #1에서 활용하지 않음**
 - `vm/`: 가상 메모리 서브시스템 구현을 위한 프로젝트 디렉터리, **프로젝트에서 활용하지 않음**
 - `filesys/`: 파일시스템 구현을 위한 기본 프로젝트 디렉터리, **프로젝트에서 활용하지 않음**
+
+## `threads` 디렉터리 구조 
+| 파일(threads/) | 역할(설명) |
+|---|---|
+| loader.S, loader.h | BIOS가 512바이트 부트 섹터로 적재하는 부트 로더. 디스크에서 kernel.bin을 읽어 메모리에 올린 뒤 start.S의 엔트리 라벨 start로 점프. |
+| start.S | 초기 부트 코드. 16비트에서 32비트 보호 모드로 전환하고 최소 GDT/세그먼트/스택을 설정한 후 C 레벨의 커널 진입점(main, init.c)을 호출. |
+| kernel.lds.S | 커널 링크 스크립트(전처리된 후 kernel.lds로 사용). 커널의 배치/섹션/주소를 제어. |
+| init.c, init.h | 커널의 C 진입점 main을 제공. 스레드/인터럽트/메모리/디바이스 초기화, 커맨드라인 처리, 테스트/작업 실행을 담당. |
+| thread.c, thread.h | 커널 스레드 구현. 스레드 생성(thread_create), 준비/대기/종료 상태 관리, 스케줄링(ready 큐 관리, schedule), 타이머와의 연동 등 기본 스레드 기능 제공. |
+| synch.c, synch.h | 동기화 제공: 세마포어, 락, 조건변수 기본 동작 |
+| switch.S, switch.h | 컨텍스트 스위칭용 저수준 코드. switch_threads 등 레지스터/스택을 저장·복구하여 다른 스레드로 전환. |
+| palloc.c, palloc.h | 4KB 페이지 프레임 할당기(커널/유저 풀). 페이지 단위의 물리 메모리 할당/해제를 관리. |
+| malloc.c, malloc.h | 커널 힙용 가변 크기 할당기. palloc 위에서 동작하는 kmalloc/free 구현. |
+| interrupt.c, interrupt.h | 인터럽트 서브시스템. IDT 생성/등록, 예외와 하드웨어 인터럽트 디스패치, 핸들러 설치, intr_enable/disable 등 인터럽트 레벨 제어 제공. |
+| intr-stubs.S, intr-stubs.h | 각 인터럽트 벡터의 어셈블리 스텁. 레지스터/인터럽트 프레임을 저장하고 C 핸들러로 제어 이동. |
+| io.h | x86 포트 I/O 헬퍼(inb/outb/inw/outw/inl/outl 등) 인라인 함수/매크로를 제공하는 헤더. |
+| vaddr.h | 가상 주소 관련 매크로/상수(PGSIZE, PGROUNDUP/DOWN 등) 및 커널/유저 주소 공간 경계 정의. |
+| pte.h | x86 페이지 디렉터리/테이블 엔트리 형식과 비트 플래그(PTE_P, PTE_W, PTE_U 등) 정의. |
+| flags.h | x86 EFLAGS 레지스터 비트 정의(IF, DF 등). |
 
 ## 저장소 Clone 및 개인 저장소 복제 
 ```bash
