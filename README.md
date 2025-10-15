@@ -76,7 +76,7 @@ cd kjnu0522001-pintos
    ```
 5. 본인 계정의 저장소를 clone 하여 자유롭게 개발 및 백업
    ```bash
-   git clone  https://github.com/<your-username>/<your-repository-name>.git
+   git clone -b proj1 https://github.com/<your-username>/<your-repository-name>.git
    ```
 **주의사항: 본 저장소를 FORK하지 마시기 바랍니다!** 
 
@@ -84,6 +84,14 @@ cd kjnu0522001-pintos
 ```bash
 git clone https://github.com/jhnleeknu/kjnu0522001-pintos.git
 cd kjnu0522001-pintos/threads
+```
+또는
+```bash
+git clone -b proj1 https://github.com/<your-username>/<your-repository-name>.git
+cd <your-repository-name>
+```
+
+```bash
 make
 ../utils/pintos -- run priority-preempt
 ```

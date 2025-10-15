@@ -30,9 +30,9 @@ test_priority_aging (void)
     hog_ticks = 0;
 
     msg ("Launching aging scenario.");
-    thread_set_priority (PRI_DEFAULT + 4);
+    thread_set_priority (PRI_DEFAULT + 1);
 
-    thread_create ("hog", PRI_DEFAULT + 3, hog_thread, NULL);
+    thread_create ("hog", PRI_DEFAULT, hog_thread, NULL);
     thread_create ("aging", PRI_DEFAULT - 5, aging_thread, NULL);
 
     thread_set_priority (PRI_MIN);

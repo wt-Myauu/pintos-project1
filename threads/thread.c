@@ -28,6 +28,10 @@ static struct list ready_list;
    when they are first scheduled and removed when they exit. */
 static struct list all_list;
 
+/* List of process in sleep */
+static struct list sleep_list;
+static int64_t next_tick_to_wakeup = INT64_MAX;
+
 /* Idle thread. */
 static struct thread *idle_thread;
 
@@ -92,6 +96,7 @@ thread_init (void)
     lock_init (&tid_lock);
     list_init (&ready_list);
     list_init (&all_list);
+    list_init (&sleep_list);
 
     /* Set up a thread structure for the running thread. */
     initial_thread = running_thread ();
@@ -248,6 +253,63 @@ thread_unblock (struct thread *t)
     list_push_back (&ready_list, &t->elem);
     t->status = THREAD_READY;
     intr_set_level (old_level);
+}
+
+static void
+update_next_tick_to_wakeup (int64_t tick)
+{
+    next_tick_to_wakeup = 
+        (next_tick_to_wakeup > tick) ? tick : next_tick_to_wakeup;
+}
+
+int64_t
+get_next_tick_to_wakeup (void)
+{
+    return next_tick_to_wakeup;
+}
+
+/* Wakes up this thread after ticks */
+void
+thread_sleep (int64_t tick)
+{
+    struct thread *cur;
+    enum intr_level old_level;
+
+    old_level = intr_disable ();
+    cur = thread_current ();
+
+    ASSERT (cur != idle_thread);
+
+    update_next_tick_to_wakeup (cur->wakeup_tick = tick);
+    list_push_back (&sleep_list, &cur->elem);
+
+    thread_block ();
+
+    intr_set_level (old_level);
+}
+
+void
+thread_wakeup (int64_t current_tick)
+{
+    struct list_elem *e;
+
+    next_tick_to_wakeup = INT64_MAX;
+
+    e = list_begin (&sleep_list);
+    while (e != list_end (&sleep_list))
+    {
+        struct thread *t = list_entry (e, struct thread, elem);
+        if (current_tick >= t->wakeup_tick)
+        {
+            e = list_remove (&t->elem);
+            thread_unblock (t);
+        }
+        else
+        {
+            e = list_next (e);
+            update_next_tick_to_wakeup (t->wakeup_tick);
+        }
+    }
 }
 
 /* Returns the name of the running thread. */
