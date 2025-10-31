@@ -89,6 +89,10 @@ struct thread
     uint8_t *stack;            /* Saved stack pointer. */
     int priority;              /* Priority. */
     struct list_elem allelem;  /* List element for all threads list. */
+    
+    // [추가] Sleep/Wakeup 및 Aging 구현에 필요한 멤버
+    int64_t wakeup_tick;       /* When to wake up this thread. */
+    int age;                   /* [추가] Aging: time spent in ready queue. */
 
     /* Shared between thread.c and synch.c. */
     struct list_elem elem; /* List element. */
@@ -97,9 +101,6 @@ struct thread
     /* Owned by userprog/process.c. */
     uint32_t *pagedir; /* Page directory. */
 #endif
-
-    /* For timer_sleep() */
-    int64_t wakeup_tick;
 
     /* Owned by thread.c. */
     unsigned magic; /* Detects stack overflow. */
@@ -113,6 +114,8 @@ extern bool thread_mlfqs;
 void thread_init (void);
 void thread_start (void);
 
+void thread_aging(void); // [추가] Aging 함수 선언
+
 void thread_tick (void);
 void thread_print_stats (void);
 
@@ -121,10 +124,6 @@ tid_t thread_create (const char *name, int priority, thread_func *, void *);
 
 void thread_block (void);
 void thread_unblock (struct thread *);
-
-int64_t get_next_tick_to_wakeup (void);
-void thread_sleep (int64_t);
-void thread_wakeup (int64_t);
 
 struct thread *thread_current (void);
 tid_t thread_tid (void);
@@ -144,5 +143,10 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
+
+// [추가] Timer-based Sleep/Wakeup 함수 선언
+void thread_wakeup(int64_t current_tick);
+void thread_sleep(int64_t tick);
+int64_t get_next_tick_to_wakeup(void);
 
 #endif /* threads/thread.h */
